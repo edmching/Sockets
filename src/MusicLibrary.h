@@ -57,8 +57,15 @@ class MusicLibrary {
     //=================================
     // TODO: Remove song from database
     //=================================
+	auto search = songs_.find(song); //find returns an iterator to the element
+	if (search != songs_.end()) //check if it returns a past-the-end iterator
+	{
+		songs_.erase(song);
+		return true;
+	}
 
-    return false;
+	return false;
+
   }
 
   /**
@@ -72,7 +79,17 @@ class MusicLibrary {
     //==================================
     // TODO: Remove songs from database
     //==================================
+	for (auto it = songs.begin(); it != songs.end(); ++it)
+	{
+		auto search = songs_.find(*it);
+		if (search != songs_.end()) {
+			songs_.erase(*it);
+			count++;
+		}
 
+	}
+
+	
     return count;
   }
 
@@ -92,12 +109,16 @@ class MusicLibrary {
 
     // compile regular expressions
     std::regex aregex(artist_regex);
+	std::regex tregex(title_regex);
 
     // search through songs for titles and artists matching search expressions
     for (const auto& song : songs_) {
       if (std::regex_search(song.artist, aregex)) {
         out.push_back(song);
       }
+	  if (std::regex_search(song.title, tregex)) {
+		  out.push_back(song);
+	  }
     }
 
     return out;
