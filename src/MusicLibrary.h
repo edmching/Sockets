@@ -113,12 +113,11 @@ class MusicLibrary {
 
     // search through songs for titles and artists matching search expressions
     for (const auto& song : songs_) {
-      if (std::regex_search(song.artist, aregex)) {
+      if (std::regex_search(song.artist, aregex) &&
+		  std::regex_search(song.title, tregex)) {
         out.push_back(song);
       }
-	  if (std::regex_search(song.title, tregex)) {
-		  out.push_back(song);
-	  }
+
     }
 
     return out;
