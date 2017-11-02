@@ -63,8 +63,9 @@ class MusicLibrary {
 		songs_.erase(song);
 		return true;
 	}
-
-	return false;
+	else {
+		return false;
+	}
 
   }
 
