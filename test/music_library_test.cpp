@@ -49,9 +49,18 @@ void testRemoveSong(MusicLibrary& lib,
                  const std::string& artist, const std::string& title ) {
 
   Song song = {artist, title};
-
+  bool isSongFound;
   // may want to check if songs exists in first place
-  lib.remove(song);
+  isSongFound = lib.remove(song);
+
+  std::cout << "-----Remove one song test begin-----" << std::endl;
+  if (isSongFound == true) {
+	  std::cout << "song is founded" << std::endl;
+  }
+  else
+  {
+	  std::cout << "song is not founded" << std::endl;
+  }
 
   // check to make sure song exists in library
   for (const auto& s : lib.songs()) {
@@ -62,7 +71,47 @@ void testRemoveSong(MusicLibrary& lib,
       return;
     }
   }
+  std::cout << "-----Remove one song test end-----" << std::endl;
+}
 
+/**
+ *Tries removing mulitple songs from the library. If successful, the library
+ *will no longer contain the added songs.
+ *
+ *@param lib library to modify
+ *@param songs, vector containing the songs to remove
+ *@throws TestException if failed to remove song
+ */
+void testRemoveSongs(MusicLibrary& lib, std::vector<Song>& songs)
+{
+	int count = lib.remove(songs);
+	if (count == songs.size())
+	{
+		std::cout << "-----Removed all songs test case-----" << std::endl;
+		std::cout << "All songs removed" << std::endl;
+	}
+	else 
+	{
+		std::cout << count << " songs removed" << std::endl;
+	}
+
+	//check to make sure song exists in library
+	auto it = songs.begin();
+	while (it != songs.end()) {
+		for (const auto& s : lib.songs()) {
+			if (*it == s) {
+				// found it, throw exception
+				throw TestException(std::string("Song not properly removed: ")
+					+ s.toString() + std::string(", Number of songs removed: ")
+					+ std::to_string(count));
+				return;
+			}
+
+		}
+		std::cout << *it << " removed" << std::endl;
+		it++;
+	}
+	std::cout << "-----Removed all songs test case-----" << std::endl;
 }
 
 /**
@@ -164,11 +213,21 @@ int main() {
 
   MusicLibrary lib;
   setupLibrary(lib);
+  std::vector<Song> songsToRemove;
+  songsToRemove.push_back({ "Dustin Lynch", "Small Town Boy" });
+  songsToRemove.push_back({ "Auli'i Cravalho", "How Far I'll Go" });
+  songsToRemove.push_back({ "Luke Combs", "When It Rains It Pours" });
 
   try {
-
     testAddSong(lib, "Auli'i Cravalho", "How Far I'll Go");
     testRemoveSong(lib, "Auli'i Cravalho", "How Far I'll Go");
+	testAddSong(lib, "Dustin Lynch", "Small Town Boy");
+	testAddSong(lib, "Auli'i Cravalho", "How Far I'll Go");
+	testRemoveSongs(lib, songsToRemove);
+	testRemoveSong(lib, "Luke Combs", "When It Rains It Pours");
+	testAddSong(lib, "Luke Combs", "When It Rains It Pours");
+	testRemoveSong(lib, "Luke Combs", "When It Rains It Pours");
+
 
     std::vector<Song> expected = {{"Taylor Swift", "...Ready For It?"}};
     testFindSongs(lib, "Taylor", "[rR]eady", expected);
