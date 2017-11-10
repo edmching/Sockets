@@ -120,8 +120,9 @@ class JsonMusicLibraryApi : public MusicLibraryApi {
     bool success = socket_.read_all(cbuff, size);
 	if (success) {
 		char str_byte;
-		for (size_t i = 0; i < size; ++i) {
-			str_byte = char(cbuff[i] & 0xFF);
+		//Starting with MSB cbuff[0] we append each byte on string 
+		for (size_t i = 0; i < size; ++i) { 
+			str_byte = char(cbuff[i] & 0xFF); //since char can be signed, we must AND it with 0xFF so we get the unsigned value
 			str.push_back(str_byte);
 		}
 	}
@@ -151,8 +152,8 @@ class JsonMusicLibraryApi : public MusicLibraryApi {
 	size_t size = 0;
 	size_t size_byte = 0;
 	for (int i = 0; i < 4; ++i) {
-	  size_byte = (size_t) ( buff[i] & 0xFF) ; 
-	  size = (size >> 8) + size_byte;
+	  size_byte = (size_t) ( buff[i] & 0xFF) ;  // since char can be signed
+	  size = (size >> 8) + size_byte; //shift 1 byte right to add the next byte
 	}
 		
     // read entire JSON string
