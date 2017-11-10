@@ -56,7 +56,7 @@ void do_add(MusicLibraryApi &api) {
     AddResponseMessage& resp = (AddResponseMessage&)(*msgr);
 
     if (resp.status == MESSAGE_STATUS_OK) {
-      std::cout << std::endl << "   \"" << song << "\" added successfull." << std::endl;
+      std::cout << std::endl << "   \"" << song << "\" added successfully." << std::endl;
     } else {
       std::cout << std::endl << "   Adding \"" << song << "\" failed: " << resp.info << std::endl;
     }
@@ -70,8 +70,30 @@ void do_remove(MusicLibraryApi &api) {
 
   //=================================================
   // TODO: Implement "remove" functionality
-  //=================================================
-  
+  //================================================= 
+  std::string artist, title;
+  std::cout << std::endl << "Remove Song" << std::endl;
+  std::cout << "   Artist: ";
+  std::getline(std::cin, artist);
+  std::cout << "   Title:  ";
+  std::getline(std::cin, title);
+
+  Song song(artist, title);
+  RemoveMessage msg(song);
+  if (api.sendMessage(msg)) {
+	  //get response
+	  std::unique_ptr<Message> msgr = api.recvMessage();
+	  RemoveResponseMessage& resp = (RemoveResponseMessage&)(*msgr);
+
+	  if (resp.status == MESSAGE_STATUS_OK) {
+		  std::cout << std::endl << "  \"" << song << "\" removed successfully." << std::endl;
+	  }
+	  else {
+		  std::cout << std::endl << "   Removing \"" << song << "\" failed: " << resp.info << std::endl;
+	  }
+
+  }
+  std::cout << std::endl;
 }
 
 // search for songs on server

@@ -31,6 +31,7 @@ void service(MusicLibrary &lib, MusicLibraryApi &&api, int id) {
   //=========================================================
   // TODO: Implement thread safety
   //=========================================================
+  std::mutex mutex_;
 
   std::cout << "Client " << id << " connected" << std::endl;
 
@@ -51,7 +52,9 @@ void service(MusicLibrary &lib, MusicLibraryApi &&api, int id) {
 
         // add song to library
         bool success = false;
-        success = lib.add(add.song);
+		mutex_.lock(); 
+        success = lib.add(add.song);//critical section
+		mutex_.unlock();
 
         // send response
         if (success) {
@@ -67,6 +70,24 @@ void service(MusicLibrary &lib, MusicLibraryApi &&api, int id) {
         //====================================================
         // TODO: Implement "remove" functionality
         //====================================================
+		//get reference to remove
+		RemoveMessage &remove = (RemoveMessage &)(*msg);
+		std::cout << "Client " << id << " removing song: " << remove.song << std::endl;
+
+		// remove song to library
+		bool success = false;
+		mutex_.lock();
+		success = lib.remove(remove.song); //critical section
+		mutex_.unlock();
+
+		//send response
+		if (success) {
+			api.sendMessage(RemoveResponseMessage(remove, MESSAGE_STATUS_OK));
+		} 
+		else {
+			api.sendMessage(RemoveResponseMessage(remove,
+				MESSAGE_STATUS_ERROR, "Song cannot be removed"));
+		}
 
         break;
       }
@@ -80,7 +101,9 @@ void service(MusicLibrary &lib, MusicLibraryApi &&api, int id) {
 
         // search library
         std::vector<Song> results;
-        results = lib.find(search.artist_regex, search.title_regex);
+		mutex_.lock();
+        results = lib.find(search.artist_regex, search.title_regex);//critical section
+		mutex_.unlock();
 
         // send response
         api.sendMessage(SearchResponseMessage(search, results, MESSAGE_STATUS_OK));
@@ -160,11 +183,15 @@ int main() {
   //         to run in a new detached thread
   //===============================================================
   cpen333::process::socket client;
-  if (server.accept(client)) {
-    // create API handler
-    JsonMusicLibraryApi api(std::move(client));
+  int i = 1;
+  while (server.accept(client)) {
+	// create API handler
+	JsonMusicLibraryApi api(std::move(client));
     // service client-server communication
-    service(lib, std::move(api), 0);
+    //service(lib, std::move(api), 0);
+    std::thread thread(service, std::ref(lib), std::move(api), i);
+	thread.detach();
+	i++;
   }
 
   // close server

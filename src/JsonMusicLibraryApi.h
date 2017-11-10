@@ -14,7 +14,7 @@
  *
  * E.g. to send {"status": "OK"}, which has a length of 17 including the terminating
  * zero, the following bytes will be sent
- *    0x55   0x11 0x00 0x00 0x00    0x7B 0x22 0x73 0x74 0x61 0x74 0x75 0x73 0x22 0x3A 0x20 0x22 0x4F 0x4B 0x22 0x7D 0x00
+ *    0x55   0x00 0x00 0x00 0x11    0x7B 0x22 0x73 0x74 0x61 0x74 0x75 0x73 0x22 0x3A 0x20 0x22 0x4F 0x4B 0x22 0x7D 0x00
  *   <JSON>    <integer: 17>                <string: {"status": "OK"} >
  *
  *
@@ -93,8 +93,8 @@ class JsonMusicLibraryApi : public MusicLibraryApi {
     size_t size = jsonstr.size()+1;           // one for terminating zero
     for (int i=4; i-->0;) {
       // cut off byte and shift size over by 8 bits
-      buff[i] = (char)(size & 0xFF);
-      size = size >> 8;
+      buff[i] = (char)(size & 0xFF); 
+      size = size >> 8; 
     }
 
     // write contents
@@ -117,9 +117,16 @@ class JsonMusicLibraryApi : public MusicLibraryApi {
     //======================================================
     // TODO: read and append to str in chunks of 256 bytes
     //======================================================
-    bool success = false;
-
-    return success;
+    bool success = socket_.read_all(cbuff, size);
+	if (success) {
+		char str_byte;
+		for (size_t i = 0; i < size; ++i) {
+			str_byte = char(cbuff[i] & 0xFF);
+			str.push_back(str_byte);
+		}
+	}
+	
+	return success;
   }
 
   /**
@@ -141,8 +148,13 @@ class JsonMusicLibraryApi : public MusicLibraryApi {
     //=================================================
     // TODO: Decode 4-byte big-endian integer size
     //=================================================
-    int size = 0;
-
+	size_t size = 0;
+	size_t size_byte = 0;
+	for (int i = 0; i < 4; ++i) {
+	  size_byte = (size_t) ( buff[i] & 0xFF) ; 
+	  size = (size >> 8) + size_byte;
+	}
+		
     // read entire JSON string
     std::string str;
     if (!readString(str, size)) {
